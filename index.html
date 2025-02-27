@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>After School Activities</title>
+        <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+        <script src="product.js"></script>
+    </head>
+    <body>
+        <div id="app">
+            <header class="bg-gray-600 p-5 flex items-center justify-between text-white">
+                <h1 class="text-3xl font-semibold" v-text="sitename" v-text="sitename"></h1>
+                <button v-on:click="showCheckout" class="bg-green-500 text-white py-2 px-4 rounded-lg flex items-center hover:bg-yellow-600 transition duration-300">
+                    <span class="mr-2"> {{ cartItemCount }} </span>
+                    <span class="fas fa-cart-plus">Checkout</span>
+                </button>
+            </header>
+            <main>
+                <div v-if="showProduct" class="flex flex-col items-center py-5 mt-5">
+                    <div class="flex flex-wrap justify-center gap-6">
+                        <div v-for="product in sortedProducts" class="bg-white border border-gray-200 rounded-lg w-60 m-3 p-5 shadow-lg transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-xl">
+                            <h2 class="text-2xl font-semibold text-gray-800 mb-3" v-text="product.title" ></h2>
+                            <figure class="text-center mb-4">
+                                <img class="max-w-full h-auto rounded-lg" v-bind:src="product.image" alt="Product Image" width="100">
+                            </figure>
+                            <p class="text-gray-600" v-html="product.location"></p>
+                            <p class="font-semibold text-lg text-gray-900 mt-2">Price: {{product.price}}</p>
+                            <p class="text-gray-600 mt-2">Available: {{product.spaces -cartCount(product.id) }}</p>
+                            <button v-on:click="addToCart(product)" v-if="canAddToCart(product)" class="w-full py-2 bg-green-500 text-white rounded-lg mt-3 hover:bg-green-600 transition duration-300">Add to Cart</button>
+                            <button disabled="disabled" v-else class="w-full py-2 bg-gray-400 text-white rounded-lg mt-3 cursor-not-allowed">Add to Cart</button>
+                            <span v-if="product.spaces === cartCount(product.id)" class="text-red-500 font-bold mt-2">All out!</span>
+                            <span v-else-if="product.spaces - cartCount(product.id) < 5" class="text-orange-500 font-bold mt-2"> 
+                                Only {{product.spaces - cartCount(product.id)}} left!</span>
+                            <span v-else class="text-green-500 mt-2">Buy now!</span>
+                            <div class="flex items-center mt-3">
+                                <span v-for='n in product.rating' class="text-yellow-400">★ </span>
+                                <span v-for='n in 5-product.rating' class="text-gray-300">☆</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-else class="container mx-auto p-6 bg-white rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-6">Checkout</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 container mx-auto p-6 bg-white rounded-lg shadow-lg">
+                        <div class="flex flex-col">
+                            <label for="first-name" class="text-lg font-medium text-gray-700">First Name</label>
+                            <input id="first-name" v-model.trim="order.firstName" type="text" class="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="last-name" class="text-lg font-medium text-gray-700">Last Name</label>
+                            <input id="last-name" v-model="order.lastName" type="text" class="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="address" class="text-lg font-medium text-gray-700">Address</label>
+                            <input id="address" v-model="order.address" type="text" class="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="city" class="text-lg font-medium text-gray-700">City</label>
+                            <input id="city" v-model="order.city" type="text" class="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300">
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="state" class="text-lg font-medium text-gray-700">State</label>
+                            <select v-model="order.state" id="state" class="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300">
+                                <option disabled value="">State</option>
+                                <option v-bind:value="states.AL">AL</option>
+                                <option v-bind:value="states.AR">AR</option>
+                                <option v-bind:value="states.CA">CA</option>
+                                <option v-bind:value="states.NV">NV</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="zip" class="text-lg font-medium text-gray-700">Zip/Postal</label>
+                            <input id="zip" v-model.number="order.zip" type="number" class="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 shadow-md hover:shadow-lg transition-all duration-300">
+                        </div>
+                    </div>
+                        <h2 class="text-2xl font-semibold mt-6 mb-4">Order Information</h2>
+                        <div class="bg-gray-100 p-4 rounded-lg shadow-md">
+                            <p><strong>First Name:</strong> {{ order.firstName }}</p>
+                            <p><strong>Last Name:</strong> {{ order.lastName }}</p>
+                            <p><strong>Address:</strong> {{ order.address }}</p>
+                            <p><strong>City:</strong> {{ order.city }}</p>
+                            <p><strong>Zip:</strong> {{ order.zip }}</p>
+                            <p><strong>State:</strong> {{ order.state }}</p>
+                        </div>
+                        <button v-on:click="submitForm" class="mt-6 w-full bg-green-500 text-white font-semibold p-3 rounded-lg hover:bg-green-600 focus:ring-2 focus:ring-green-500 shadow-md transition duration-300">
+                            Place Order
+                        </button>
+            </main>
+        </div>
+
+        <script type="text/javascript">
+            let webstore = new Vue({
+                el: '#app',
+                data: {
+                sitename: 'After School Activities',
+                products: products,
+                // product: {
+                //     id: 1001,
+                //     title: "Cat Food, 25lb bag",
+                //     description: "A 25 pound bag of <em>irresistible</em>, organic goodness for your cat.",
+                //     price: 2000,
+                //     image: 'Fullstack_project./images/catfood.avif',
+                //     availableInventory: 10,
+                //     rating: 3
+                // },
+                cart: [],
+                showProduct: true,
+                order: {
+                    firstName: '',
+                    lastName: '',
+                    address: '',
+                    city: '',
+                    zip: '',
+                    state: '',
+                    method: '',
+                    sendGift: 'Send as a Gift',
+                    dontSendGift: 'Do not send as a gift'
+                },
+                states: {
+                    AL: 'Alabama',
+                    AR: 'Arizona',
+                    CA: 'California',
+                    NV: 'Nevada'
+                }
+                },
+                methods: {
+                    addToCart(product) {
+                        this.cart.push(product.id);
+                    // console.log('adding to cart', product.id)
+                    },
+                    showCheckout() {
+                    // console.log(this.showProduct);
+                        this.showProduct = this.showProduct ? false : true;
+                    },
+                    submitForm() {
+                        alert('Order submitted!')
+                    },
+                    canAddToCart(product) {
+                        return product.spaces > this.cartCount(product.id);
+                    },
+                    cartCount(id) {
+                        let count = 0;
+                        for (let i = 0; i < this.cart.length; i++) {
+                            if (this.cart[i] === id) {
+                            count++;
+                        }
+                    }
+                    return count;
+                }
+            },
+                computed: {
+                    cartItemCount() {
+                        return this.cart.length;
+                    },
+                    sortedProducts () {
+                        let productsArray = this.products.slice(0);
+                        function compare(a, b) {
+                            if (a.price > b.price) return 1;
+                            if (a.price < b.price) return -1
+                            return 0;
+                        }
+                        return productsArray.sort(compare);
+                    }
+                }
+            });
+        </script>
+    </body>
+</html>
